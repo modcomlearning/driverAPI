@@ -131,5 +131,14 @@ def allocatedvehicle():
         response.status_code = 500
         return response
 
+
+
+# Get all assignments by driver_id
+@app.route('/myassignments', methods= ['POST'])
+def myassignments():
+    json = request.json
+    driver_id = json['driver_id']
+
+
 # https://github.com/modcomlearning/driverAPI
 app.run(debug=True)
