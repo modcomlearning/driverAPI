@@ -92,6 +92,14 @@ def change_password():
                 return response
 
 #https://github.com/modcomlearning/driverAPI
+
+def getmakes():
+    sql = "select * from vehicle_make order by make_name asc"
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
+    cursor.execute(sql)
+    makes = cursor.fetchall()
+    return makes
+
 @app.route('/allocatedvehicle', methods = ['POST'])
 def allocatedvehicle():
     try:
@@ -113,7 +121,8 @@ def allocatedvehicle():
             return response
         else:
            vehicle = cursor2.fetchone()
-           response = jsonify({'msg':'Success', 'data': vehicle})
+           makes = getmakes()
+           response = jsonify({'msg':'Success', 'data': vehicle, 'makes': makes})
            response.status_code = 200
            return response
 
@@ -122,4 +131,5 @@ def allocatedvehicle():
         response.status_code = 500
         return response
 
+# https://github.com/modcomlearning/driverAPI
 app.run(debug=True)
