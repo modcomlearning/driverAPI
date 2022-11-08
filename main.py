@@ -54,7 +54,7 @@ def change_password():
             cursor.execute(sql, (driver_id))
             # get row containing the current password from DB
             row = cursor.fetchone()
-            hashed_password = row[6]
+            hashed_password = row[11]
             status = password_verify(current_password, hashed_password)
             if status:
                 print("Current is okay")
@@ -68,7 +68,7 @@ def change_password():
                         return response
                     else:
                         print("Confirm is okay")
-                        sql = "update users set password = %s where user_id = %s"
+                        sql = "update drivers set password = %s where driver_id = %s"
                         cursor = connection.cursor()
                         try:
                             cursor.execute(sql, (password_hash(new_password), driver_id))
@@ -91,7 +91,7 @@ def change_password():
                 response.status_code = 401
                 return response
 
-
+#https://github.com/modcomlearning/driverAPI
 
 
 app.run(debug=True)
