@@ -92,6 +92,34 @@ def change_password():
                 return response
 
 #https://github.com/modcomlearning/driverAPI
+@app.route('/allocatedvehicle', methods = ['POST'])
+def allocatedvehicle():
+    try:
+        json = request.json
+        driver_id = json['driver_id']
+        sql = "select * from driver_allocations where driver_id = %s and allocation_status =%s"
+        cursor = connection.cursor()
+        cursor.execute(sql, (driver_id, 'active'))
+        row = cursor.fetchone()
+        reg_no = row[2] # pull out vehicle reg no
 
+        # query again to find car details
+        sql2 = "select * from vehicles where reg_no = %s"
+        cursor2 = connection.cursor(pymysql.cursors.DictCursor)
+        cursor2.execute(sql2, (reg_no))
+        if cursor2.rowcount == 0:
+            response = jsonify({'msg': 'Not found'})
+            response.status_code = 404
+            return response
+        else:
+           vehicle = cursor2.fetchone()
+           response = jsonify({'msg':'Success', 'data': vehicle})
+           response.status_code = 200
+           return response
+
+    except:
+        response = jsonify({'msg': 'Sever error'})
+        response.status_code = 500
+        return response
 
 app.run(debug=True)
