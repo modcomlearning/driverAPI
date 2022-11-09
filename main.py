@@ -156,8 +156,5 @@ def myassignments(driver_id):
         response.status_code = 500
         return response
 
-
-
-
 # https://github.com/modcomlearning/driverAPI
 app.run(debug=True)
