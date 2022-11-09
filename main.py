@@ -156,5 +156,105 @@ def myassignments(driver_id):
         response.status_code = 500
         return response
 
+
+@app.route('/TripOngoing', methods = ['PUT'])
+def TripOngoing():
+    json = request.json
+    task_id = json['task_id']
+    sql = 'select * from vehicle_task_allocation where task_id = %s'
+    cursor = connection.cursor()
+    cursor.execute(sql, task_id)
+    if cursor.rowcount == 0:
+        response = jsonify({'msg': 'Not Such Task'})
+        response.status_code = 404
+        return response
+    else:
+        row = cursor.fetchone()
+        status = row[7]
+        if status == 'Pending':
+            sqlUpdate = '''update vehicle_task_allocation set trip_complete_status = %s where task_id
+            =%s'''
+            cursor = connection.cursor()
+            try:
+                cursor.execute(sqlUpdate, ('Ongoing', task_id))
+                connection.commit()
+                response = jsonify({'msg': 'Ongoing'})
+                response.status_code = 200
+                return response
+            except:
+                connection.rollback()
+                response = jsonify({'msg': 'Server Error'})
+                response.status_code = 500
+                return response
+        else:
+             response = jsonify({'msg': 'Cannot be Completed Status is {}'.format(status)})
+             response.status_code = 417
+             return response
+
+
+
+@app.route('/TripCompleted', methods = ['PUT'])
+def TripCompleted():
+    json = request.json
+    task_id = json['task_id']
+    sql = 'select * from vehicle_task_allocation where task_id = %s'
+    cursor = connection.cursor()
+    cursor.execute(sql, task_id)
+    if cursor.rowcount == 0:
+        response = jsonify({'msg': 'Not Such Task'})
+        response.status_code = 404
+        return response
+    else:
+        row = cursor.fetchone()
+        status = row[7]
+        if status == 'Ongoing':
+            sqlUpdate = '''update vehicle_task_allocation set trip_complete_status = %s where task_id
+            =%s'''
+            cursor = connection.cursor()
+            try:
+                cursor.execute(sqlUpdate, ('Completed', task_id))
+                connection.commit()
+                response = jsonify({'msg': 'Completed'})
+                response.status_code = 200
+                return response
+            except:
+                connection.rollback()
+                response = jsonify({'msg': 'Server Error'})
+                response.status_code = 500
+                return response
+        else:
+             response = jsonify({'msg': 'Cannot be Started Status is {}'.format(status)})
+             response.status_code = 417
+             return response
+
+
+
+@app.route('/TripDelete', methods = ['DELETE'])
+def TripDelete():
+    json = request.json
+    task_id = json['task_id']
+    sql = 'select * from vehicle_task_allocation where task_id = %s'
+    cursor = connection.cursor()
+    cursor.execute(sql, task_id)
+    if cursor.rowcount == 0:
+        response = jsonify({'msg': 'Not Such Task'})
+        response.status_code = 404
+        return response
+    else:
+        sql = "delete from vehicle_task_allocation where task_id = %s"
+        cursor = connection.cursor()
+        try:
+            cursor.execute(sql, (task_id))
+            connection.commit()
+            response = jsonify({'msg': 'Trip Deleted'})
+            response.status_code = 200
+            return response
+        except:
+            connection.rollback()
+            response = jsonify({'msg': 'Server Error'})
+            response.status_code = 500
+            return response
+
+
 # https://github.com/modcomlearning/driverAPI
 app.run(debug=True)
