@@ -134,10 +134,29 @@ def allocatedvehicle():
 
 
 # Get all assignments by driver_id
-@app.route('/myassignments', methods= ['POST'])
-def myassignments():
-    json = request.json
-    driver_id = json['driver_id']
+@app.route('/myassignments/<driver_id>', methods= ['GET'])
+def myassignments(driver_id):
+    try:
+        sql2 = '''select * from vehicle_task_allocation where driver_id = %s order by
+        reg_date DESC'''
+        cursor2 = connection.cursor(pymysql.cursors.DictCursor)
+        cursor2.execute(sql2, (driver_id))
+        if cursor2.rowcount == 0:
+            response = jsonify({'msg': 'Not Assignments'})
+            response.status_code = 404
+            return response
+        else:
+            assignments = cursor2.fetchall()
+            print(assignments)
+            response = jsonify({'msg': 'Success', 'data': assignments})
+            response.status_code = 200
+            return response
+    except:
+        response = jsonify({'msg': 'Server error'})
+        response.status_code = 500
+        return response
+
+
 
 
 # https://github.com/modcomlearning/driverAPI
