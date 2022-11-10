@@ -8,7 +8,9 @@ connection = pymysql.connect(host='localhost', user='root',
                              password='', database='FleetDB')
 
 import pymysql.cursors
-
+import jwt
+from datetime import datetime, timedelta
+app.config['SECRET_KEY'] = "a3R_60uH#200y7nK"
 @app.route('/login', methods=['POST'])
 def login():
     try:
@@ -27,7 +29,12 @@ def login():
             hashed_password = row['password']
             status = password_verify(password, hashed_password)
             if status:
-                response = jsonify({'msg': 'Login Success', 'data': row})
+                token = jwt.encode({
+                    'public_id': row['driver_id'],
+                    'exp': datetime.utcnow() + timedelta(minutes=1)
+                }, app.config['SECRET_KEY'], algorithm = "HS256")
+
+                response = jsonify({'msg': 'Login Success', 'data': row, 'token':token})
                 response.status_code = 200
                 return response
             else:
@@ -41,7 +48,36 @@ def login():
 
 
 
+# justpaste.it/572y9
+# Decorators in python, they allow to add new functionalities to an existing function
+from functools import wraps
+def token_required(f):
+     @wraps(f)
+     def decorated(*args, **kwargs):
+         token = None
+         if "Authorization" in request.headers:
+            token = request.headers["Authorization"].split(" ")[1]  # Bearer JKHJKHJKHJK
+         if not token:
+             return {
+             "message": "Authentication Token is missing!",
+             "data": None,
+             "error": "Unauthorized"
+             }, 401
+         try:
+            data=jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])
+         except Exception as e:
+             return {
+             "message": "Something went wrong",
+             "data": None,
+             "error": str(e)
+             }, 500
+
+         return f(*args, **kwargs) # F should be True if Token Is Ok, else false
+
+     return decorated  # This returns the inner function
+
 @app.route('/change_password', methods=['POST'])
+@token_required
 def change_password():
             json = request.json
             driver_id = json['driver_id']
@@ -257,4 +293,5 @@ def TripDelete():
 
 
 # https://github.com/modcomlearning/driverAPI
+# JWT Token
 app.run(debug=True)
